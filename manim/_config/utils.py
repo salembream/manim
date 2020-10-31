@@ -1,19 +1,10 @@
-"""
-utils.py
---------
+"""Utilities to create and set the config.
 
-Utilities to create and set the config.
-
-The main object exported by this module is the global ``config``, which is an
-instance of :class:`ManimConfig`.  This ``config`` object contains all
-configuration options, including frame geometry (e.g. frame height/width, frame
-rate), output (e.g. directories, logging), styling (e.g. background color,
-transparency), and general behavior (e.g. writing a movie vs writing a single
-frame).
-
-See Also
---------
-:class:`ManimConfig`
+The main class exported by this module is :class:`ManimConfig`.  This class
+contains all configuration options, including frame geometry (e.g. frame
+height/width, frame rate), output (e.g. directories, logging), styling
+(e.g. background color, transparency), and general behavior (e.g. writing a
+movie vs writing a single frame).
 
 """
 
@@ -30,10 +21,43 @@ import colour
 
 from .. import constants
 from ..utils.tex import TexTemplate, TexTemplateFromFile
-from .logger import set_file_logger
+from .logger_utils import set_file_logger
 
 
 def config_file_paths():
+    """The paths where .cfg files will be searched for.
+
+    When manim is first imported, it processes any .cfg files it finds.  This
+    function returns the locations in which these files are searched for.  In
+    ascending order of precedence, these are: the library-wide config file, the
+    user-wide config file, and the folder-wide config file.
+
+    The library-wide config file determines manim's default behavior.  The
+    user-wide config file is stored in the user's home folder, and determines
+    the behavior of manim whenever the user invokes it from anywhere in the
+    system.  The folder-wide config file only affects scenes that are in the
+    same folder.  The latter two files are optional.
+
+    These files, if they exist, are meant to loaded into a single
+    :class:`configparser.ConfigParser` object, and then processed by
+    :class:`ManimConfig`.
+
+    Returns
+    -------
+    List[:class:`Path`]
+        List of paths which may contain .cfg files, in ascending order of
+        precedence.
+
+    See Also
+    --------
+    :func:`make_config_parser`, :meth:`ManimConfig.digest_file`,
+    :meth:`ManimConfig.digest_parser`
+
+    Notes
+    -----
+    The location of the user-wide config file is OS-specific.
+
+    """
     library_wide = Path.resolve(Path(__file__).parent / "default.cfg")
     if sys.platform.startswith("win32"):
         user_wide = Path.home() / "AppData" / "Roaming" / "Manim" / "manim.cfg"
@@ -44,20 +68,31 @@ def config_file_paths():
 
 
 def make_config_parser(custom_file=None):
-    """Make a ConfigParser object and load the .cfg files.
+    """Make a :class:`ConfigParser` object and load any .cfg files.
+
+    The user-wide file, if it exists, overrides the library-wide file.  The
+    folder-wide file, if it exists, overrides the other two.
+
+    The folder-wide file can be ignored by passing ``custom_file``.  However,
+    the user-wide and library-wide config files cannot be ignored.
 
     Parameters
     ----------
     custom_file : :class:`str`
-
         Path to a custom config file.  If used, the folder-wide file in the
         relevant directory will be ignored, if it exists.  If None, the
         folder-wide file will be used, if it exists.
 
-    Notes
-    -----
-    The folder-wide file can be ignored by passing custom_file.  However, the
-    user-wide and library-wide config files cannot be ignored.
+    Returns
+    -------
+    :class:`ConfigParser`
+        A parser containing the config options found in the .cfg files that
+        were found.  It is guaranteed to contain at least the config options
+        found in the library-wide file.
+
+    See Also
+    --------
+    :func:`config_file_paths`
 
     """
     library_wide, user_wide, folder_wide = config_file_paths()
@@ -75,7 +110,7 @@ def make_config_parser(custom_file=None):
     return parser
 
 
-def determine_quality(args):
+def _determine_quality(args):
     old_qualities = {
         "k": "fourk_quality",
         "e": "high_quality",
@@ -607,7 +642,7 @@ class ManimConfig(MutableMapping):
                 self.from_animation_number = int(nflag)
 
         # Handle the quality flags
-        self.quality = determine_quality(args)
+        self.quality = _determine_quality(args)
 
         # Handle the -r flag.
         rflag = args.resolution
