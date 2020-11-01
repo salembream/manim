@@ -163,8 +163,9 @@ class ManimConfig(MutableMapping):
 
     .. code-block:: python
 
-       config.background_color = WHITE
-       config['background_color'] = WHITE
+       >>> from manim import config, WHITE
+       >>> config.background_color = WHITE
+       >>> config['background_color'] = WHITE
 
     The former is preferred; the latter is provided mostly for backwards
     compatibility.
@@ -1105,9 +1106,10 @@ class ManimConfig(MutableMapping):
             >>> config.video_dir
             '{media_dir}/videos/{module_name}/{quality}'
             >>> config.get_dir("video_dir")
-            # -> KeyError
+            Traceback (most recent call last):
+            KeyError: 'video_dir {media_dir}/videos/{module_name}/{quality} requires the following keyword arguments: module_name'
             >>> config.get_dir("video_dir", module_name="myfile")
-            PosixPath('media/videos/myfile/1080p60')
+            PosixPath('my_media_dir/videos/myfile/1080p60')
 
         Note the quality does not need to be passed as keyword argument since
         :class:`ManimConfig` does store information about quality.
@@ -1121,9 +1123,10 @@ class ManimConfig(MutableMapping):
             >>> config.partial_movie_dir
             '{video_dir}/partial_movie_files/{scene_name}'
             >>> config.get_dir("partial_movie_dir")
-            # -> KeyError
+            Traceback (most recent call last):
+            KeyError: 'partial_movie_dir {video_dir}/partial_movie_files/{scene_name} requires the following keyword arguments: scene_name'
             >>> config.get_dir("partial_movie_dir", module_name="myfile", scene_name="myscene")
-            PosixPath('media/videos/myfile/1080p60/partial_movie_files/myscene')
+            PosixPath('my_media_dir/videos/myfile/1080p60/partial_movie_files/myscene')
 
         Standard f-string syntax is used.  Arbitrary names can be used when
         defining directories, as long as the corresponding values are passed to
@@ -1133,9 +1136,13 @@ class ManimConfig(MutableMapping):
 
             >>> config.media_dir = "{dir1}/{dir2}"
             >>> config.get_dir("media_dir")
-            # -> KeyError
+            Traceback (most recent call last):
+            KeyError: 'media_dir {dir1}/{dir2} requires the following keyword arguments: dir1'
             >>> config.get_dir("media_dir", dir1='foo', dir2='bar')
             PosixPath('foo/bar')
+            >>> config.media_dir = "./media"
+            >>> config.get_dir("media_dir")
+            PosixPath('media')
 
         """
         dirs = [
