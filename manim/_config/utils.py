@@ -1078,6 +1078,7 @@ class ManimConfig(MutableMapping):
 
         .. code-block:: python
 
+            >>> from manim import config
             >>> config.tex_dir
             '{media_dir}/Tex'
             >>> config.media_dir
