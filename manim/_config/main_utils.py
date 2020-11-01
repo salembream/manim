@@ -13,7 +13,7 @@ from .logger_utils import JSONFormatter
 from ..utils.tex import TexTemplate, TexTemplateFromFile
 
 
-__all__ = ['parse_args']
+__all__ = ["parse_args"]
 
 
 def _find_subcommand(args):

@@ -178,6 +178,7 @@ class JSONFormatter(logging.Formatter):
     This class is used internally for testing purposes.
 
     """
+
     def format(self, record):
         """Format the record in a custom JSON format."""
         record_c = copy.deepcopy(record)
